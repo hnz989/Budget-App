@@ -4,6 +4,7 @@ const cors = require('cors');
 const jwt = require('jsonwebtoken');
 const { validationResult } = require('express-validator');
 const expressSanitizer = require('express-sanitizer');
+const uuid = require('uuid');
 require('dotenv').config();
 
 const app = express();
@@ -29,13 +30,13 @@ const db = mysql.createConnection({
     database: process.env.DB_DATABASE,
 });
 
-function getUserIdFromToken(req) {
-    console.log("Log check token: ", req.headers.authorization);
-
-    const token = req.headers.authorization.split(' ')[1];
-    const decoded = jwt.verify(token, process.env.SECRET_KEY);
-    return decoded.userId;
-}
+// function getUserIdFromToken(req) {
+//     console.log("Log check token: ", req.headers.authorization);
+//
+//     const token = req.headers.authorization.split(' ')[1];
+//     const decoded = jwt.verify(token, process.env.SECRET_KEY);
+//     return decoded.userId;
+// }
 
 // Connect to the database
 db.connect((error) => {
@@ -79,7 +80,7 @@ app.post('/entries', (req, res) => {
     const { description, isExpense, value } = req.body;
     const id = uuid.v4();
     const sql = 'INSERT INTO entries (id, description, isExpense, value) VALUES (?, ?, ?, ?)';
-    connection.query(sql, [id, description, isExpense, value], (err, results) => {
+    db.query(sql, [id, description, isExpense, value], (err, results) => {
         if (err) {
             console.log('Error creating entry:', err);
             res.status(500).send('Error creating entry in database');
@@ -137,7 +138,7 @@ app.get('/values', (req, res) => {
 
 app.post('/values', (req, res) => {
     const { isExpense, value } = req.body;
-    const id = uuidv4();
+    const id = uuid.v4();
     const query = `INSERT INTO entries (id, isExpense, value) VALUES ("${id}", ${isExpense}, ${value})`;
     db.query(query, (err, result) => {
         if (err) {
