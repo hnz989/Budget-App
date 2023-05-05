@@ -77,17 +77,19 @@ app.get('/entries/:id', (req, res) => {
 });
 
 app.post('/entries', (req, res) => {
-    const { description, isExpense, value } = req.body;
-    const id = uuid.v4();
-    const sql = 'INSERT INTO entries (id, description, isExpense, value) VALUES (?, ?, ?, ?)';
-    db.query(sql, [id, description, isExpense, value], (err, results) => {
-        if (err) {
-            console.log('Error creating entry:', err);
-            res.status(500).send('Error creating entry in database');
-            return;
-        }
-        res.status(201).send('Entry created successfully');
-    });
+    const { id, description, isExpense, value } = req.body;
+    console.log('Entries Log check: ', req.body);
+
+   const sql = 'INSERT INTO entries (id, description, isExpense, value) VALUES (?, ?, ?, ?)';
+   db.query(sql, [id, description, isExpense, value], (err, results) => {
+       if (err) {
+           console.log('Error creating entry:', err);
+           res.status(500).send('Error creating entry in database');
+           return;
+       }
+       res.status(201).send('Entry created successfully');
+   });
+
 });
 
 app.put('/entries/:id', (req, res) => {
@@ -136,23 +138,43 @@ app.get('/values', (req, res) => {
     });
 });
 
+app.get('/values/:id', (req, res) => {
+    const { id } = req.params;
+    const sql = `DELETE FROM entries WHERE id="${id}"`;
+    db.query(sql, (err, results) => {
+        if (err) {
+            console.log(`Error getting entry with id ${id}:`, err);
+            res.status(500).send(`Error getting entry with id ${id} from database`);
+            return;
+        }
+        if (results.length === 0) {
+            res.status(404).send(`Entry with id ${id} not found`);
+            return;
+        }
+        res.json(results[0]);
+    });
+});
+
 app.post('/values', (req, res) => {
-    const { isExpense, value } = req.body;
-    const id = uuid.v4();
-    const query = `INSERT INTO entries (id, isExpense, value) VALUES ("${id}", ${isExpense}, ${value})`;
+    const { id, isExpense, value } = req.body;
+    console.log('Value Log check: ', req.body);
+
+    const query = `UPDATE entries SET isExpense=${isExpense}, value=${value} WHERE id="${id}"`;
     db.query(query, (err, result) => {
         if (err) {
             console.log('Error creating value:', err);
             res.status(500).send('Error creating value');
         } else {
-            res.send({ id, isExpense, value });
+            res.send({id, isExpense, value});
         }
     });
+
 });
 
 app.put('/values/:id', (req, res) => {
     const { id } = req.params;
     const { isExpense, value } = req.body;
+    console.log('Value Put Log check: ', req.body);
     const query = `UPDATE entries SET isExpense=${isExpense}, value=${value} WHERE id="${id}"`;
     db.query(query, (err, result) => {
         if (err) {
@@ -161,15 +183,6 @@ app.put('/values/:id', (req, res) => {
         } else {
             res.send({ id, isExpense, value });
         }
-    });
-});
-
-app.delete('/values/:id', (req, res) => {
-    const { id } = req.params;
-    const query = `DELETE FROM entries WHERE id="${id}"`;
-    db.query(query, (err, result) => {
-        if (err) throw err;
-        res.send({ id });
     });
 });
 

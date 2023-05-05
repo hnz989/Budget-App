@@ -12,10 +12,12 @@ function* addEntryToDb({ payload }) {
     yield put({ type: entriesTypes.ADD_ENTRY_RESULT, payload });
 }
 
-async function addEntry({ id, description }) {
+async function addEntry({ id, description, isExpense }) {
+    console.log("my addEntry:::",description);
     await axios.post('http://localhost:3001/entries', {
         id,
         description,
+        isExpense,
     });
 }
 
